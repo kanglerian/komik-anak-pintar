@@ -1,0 +1,85 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ComicFlipbook from '../../components/ComicFlipbook.astro';
+import { getAllComics, type Comic } from '../../lib/comics';
+
+export function getStaticPaths() {
+	const comics = getAllComics();
+	return comics.map((comic) => ({
+		params: { slug: comic.slug },
+		props: { comic },
+	}));
+}
+
+interface Props {
+	comic: Comic;
+}
+
+const { comic } = Astro.props;
+const allComics = getAllComics().filter((c) => c.slug !== comic.slug);
+---
+
+<Layout title={`${comic.title} — Komik Anak Pintar`} description={comic.description}>
+	<!-- Compact & Clear Header -->
+	<div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+		<div>
+			<a
+				href="/"
+				class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-600 hover:text-indigo-600 mb-1.5 transition"
+			>
+				← Kembali ke Daftar Komik
+			</a>
+			<h1 class="text-2xl sm:text-3xl font-bold text-slate-900">
+				{comic.title}
+			</h1>
+			<p class="text-xs sm:text-sm text-slate-600 mt-0.5">{comic.description}</p>
+		</div>
+
+		<div class="flex items-center gap-2 self-start sm:self-center shrink-0">
+			<span class="rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 text-xs font-semibold">
+				{comic.badge}
+			</span>
+			<span class="rounded-lg bg-slate-200/80 text-slate-700 px-3 py-1 text-xs font-semibold">
+				{comic.pageCount} Halaman
+			</span>
+		</div>
+	</div>
+
+	<!-- Interactive 3D Flipbook Reader -->
+	<ComicFlipbook comic={comic} />
+
+	<!-- Other Comics Recommendation -->
+	{
+		allComics.length > 0 && (
+			<section class="mt-10 pt-8 border-t border-slate-200">
+				<h2 class="text-lg sm:text-xl font-bold text-slate-900 mb-4">
+					Komik Lainnya
+				</h2>
+				<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+					{allComics.map((other) => (
+						<a
+							href={`/komik/${other.slug}`}
+							class="group flex items-center gap-3.5 rounded-xl bg-white p-3 border border-slate-200 hover:border-indigo-300 shadow-2xs hover:shadow-sm transition"
+						>
+							<img
+								src={other.coverUrl}
+								alt={other.title}
+								loading="lazy"
+								class="w-28 aspect-video object-cover rounded-lg bg-slate-900 shrink-0"
+							/>
+							<div class="min-w-0">
+								<span class="inline-block text-[11px] font-semibold text-indigo-600 mb-0.5">
+									{other.pageCount} Halaman
+								</span>
+								<h3 class="font-bold text-slate-900 group-hover:text-indigo-600 transition text-sm truncate">
+									{other.title}
+								</h3>
+								<p class="text-xs text-slate-500 line-clamp-1">{other.description}</p>
+							</div>
+						</a>
+					))}
+				</div>
+			</section>
+		)
+	}
+</Layout>

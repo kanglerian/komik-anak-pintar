@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@layer base {
+	html {
+		font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+		scroll-behavior: smooth;
+	}
+
+	h1, h2, h3, h4 {
+		font-family: 'Fredoka', 'Nunito', system-ui, -apple-system, sans-serif;
+	}
+}
+
+/* 3D Flipbook Container Styling */
+.flipbook-wrapper {
+	perspective: 2200px;
+}
+
+.stf__parent {
+	margin: 0 auto !important;
+	width: 100% !important;
+	max-width: 100% !important;
+}
+
+.stf__block {
+	box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+	border-radius: 12px;
+}
+
+.comic-page {
+	background-color: #0f172a;
+	overflow: hidden;
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+/* Fullscreen reader container styling */
+.reader-stage:fullscreen,
+.reader-stage:-webkit-full-screen {
+	background-color: #090d16;
+	width: 100vw;
+	height: 100vh;
+	max-width: none;
+	border-radius: 0;
+	border: none;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	padding: 0.75rem 1.25rem;
+	overflow: hidden;
+}
+
+.reader-stage:fullscreen .flipbook-stage-area,
+.reader-stage:-webkit-full-screen .flipbook-stage-area {
+	flex: 1;
+	min-height: 0;
+	width: 100%;
+}
+
+.reader-stage:fullscreen .flipbook-wrapper,
+.reader-stage:-webkit-full-screen .flipbook-wrapper {
+	max-width: 100% !important;
+	height: 100%;
+}
+
+.reader-stage:fullscreen .reader-hint,
+.reader-stage:-webkit-full-screen .reader-hint {
+	display: none;
+}

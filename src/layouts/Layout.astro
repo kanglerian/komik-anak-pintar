@@ -1,0 +1,220 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = 'Komik Anak Pintar — Baca Komik Interaktif',
+	description = 'Perpustakaan komik digital interaktif untuk anak-anak. Geser dan balik halamannya seperti membaca buku sungguhan!',
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="id">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+		<link rel="manifest" href="/manifest.webmanifest" />
+		<meta name="theme-color" content="#4f46e5" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+		<meta name="apple-mobile-web-app-title" content="Komik Pintar" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="description" content={description} />
+		<title>{title}</title>
+
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Nunito:wght@500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+	</head>
+	<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased">
+		<!-- Clean Header Navbar -->
+		<header class="sticky top-0 z-30 backdrop-blur-md bg-white/90 border-b border-slate-200">
+			<div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+				<a
+					href="/"
+					class="inline-flex items-center gap-2.5 text-lg sm:text-xl font-bold tracking-tight text-slate-900 hover:text-indigo-600 transition"
+				>
+					<span
+						class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-600 text-white shadow-xs text-lg"
+					>
+						📚
+					</span>
+					<span>Komik Anak Pintar</span>
+				</a>
+
+				<nav class="flex items-center gap-2">
+					<!-- PWA Install Button (Always visible unless already installed as standalone app) -->
+					<button
+						id="btn-install-pwa"
+						type="button"
+						class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-95 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition cursor-pointer"
+					>
+						<span>📲</span>
+						<span>Install Aplikasi</span>
+					</button>
+
+					<a
+						href="/"
+						class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 transition"
+					>
+						Daftar Komik
+					</a>
+				</nav>
+			</div>
+		</header>
+
+		<main class="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+			<slot />
+		</main>
+
+		<!-- Modal Panduan Install PWA (muncul jika browser belum memicu native prompt otomatis) -->
+		<div
+			id="pwa-install-modal"
+			class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs"
+			role="dialog"
+			aria-modal="true"
+			aria-labelledby="pwa-modal-title"
+		>
+			<div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-slate-200">
+				<div class="flex items-start justify-between gap-3 mb-4">
+					<div class="flex items-center gap-3">
+						<img src="/icons/icon-192.png" alt="Ikon Aplikasi" class="w-12 h-12 rounded-xl shadow-xs" />
+						<div>
+							<h3 id="pwa-modal-title" class="text-lg font-bold text-slate-900">
+								Install Komik Anak Pintar
+							</h3>
+							<p class="text-xs text-slate-500">Pasang di layar utama HP atau komputer Anda</p>
+						</div>
+					</div>
+					<button
+						id="btn-close-pwa-modal"
+						type="button"
+						aria-label="Tutup"
+						class="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
+					>
+						✕
+					</button>
+				</div>
+
+				<div class="space-y-3 text-sm text-slate-700 mb-6">
+					<div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200">
+						<p class="font-bold text-slate-900 mb-1">📱 Di HP Android (Chrome):</p>
+						<p class="text-xs text-slate-600 leading-relaxed">
+							Ketuk ikon menu titik tiga <strong>(⋮)</strong> di pojok kanan atas browser, lalu pilih <strong>"Tambahkan ke layar utama"</strong> atau <strong>"Install aplikasi"</strong>.
+						</p>
+					</div>
+
+					<div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200">
+						<p class="font-bold text-slate-900 mb-1">🍎 Di iPhone / iPad (Safari):</p>
+						<p class="text-xs text-slate-600 leading-relaxed">
+							Ketuk tombol <strong>Bagikan (Share ⬆️)</strong> di bagian bawah layar, lalu pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>.
+						</p>
+					</div>
+
+					<div class="rounded-xl bg-slate-50 p-3.5 border border-slate-200">
+						<p class="font-bold text-slate-900 mb-1">💻 Di Komputer / Laptop (Chrome / Edge):</p>
+						<p class="text-xs text-slate-600 leading-relaxed">
+							Klik ikon <strong>Install (🖥️⬇️)</strong> yang ada di sisi kanan kolom alamat (address bar) browser Anda.
+						</p>
+					</div>
+				</div>
+
+				<button
+					id="btn-ok-pwa-modal"
+					type="button"
+					class="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 py-2.5 px-4 text-sm font-semibold text-white transition cursor-pointer"
+				>
+					Mengerti
+				</button>
+			</div>
+		</div>
+
+		<footer class="mt-12 border-t border-slate-200 bg-white py-6 text-center text-xs sm:text-sm text-slate-500">
+			<div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+				<p class="font-semibold text-slate-700">Komik Anak Pintar</p>
+				<p>Geser atau tarik ujung halaman untuk membaca cerita</p>
+			</div>
+		</footer>
+
+		<script>
+			// Register Service Worker for PWA & Offline Reading
+			if ('serviceWorker' in navigator) {
+				window.addEventListener('load', () => {
+					navigator.serviceWorker.register('/sw.js').catch((err) => {
+						console.warn('Service worker registration failed:', err);
+					});
+				});
+			}
+
+			interface BeforeInstallPromptEvent extends Event {
+				prompt: () => Promise<void>;
+				userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+			}
+
+			let deferredPrompt: BeforeInstallPromptEvent | null = null;
+			const installBtn = document.getElementById('btn-install-pwa');
+			const pwaModal = document.getElementById('pwa-install-modal');
+			const closePwaModal = document.getElementById('btn-close-pwa-modal');
+			const okPwaModal = document.getElementById('btn-ok-pwa-modal');
+
+			// Sembunyikan tombol jika aplikasi sudah berjalan dalam mode ter-install (standalone)
+			const isStandalone =
+				window.matchMedia('(display-mode: standalone)').matches ||
+				(window.navigator as unknown as { standalone?: boolean }).standalone === true;
+
+			if (isStandalone && installBtn) {
+				installBtn.classList.add('hidden');
+				installBtn.classList.remove('inline-flex');
+			}
+
+			window.addEventListener('beforeinstallprompt', (e) => {
+				e.preventDefault();
+				deferredPrompt = e as BeforeInstallPromptEvent;
+			});
+
+			installBtn?.addEventListener('click', async () => {
+				if (deferredPrompt) {
+					await deferredPrompt.prompt();
+					const { outcome } = await deferredPrompt.userChoice;
+					if (outcome === 'accepted' && installBtn) {
+						installBtn.classList.add('hidden');
+						installBtn.classList.remove('inline-flex');
+					}
+					deferredPrompt = null;
+				} else {
+					// Tampilkan modal panduan instalasi jika native prompt belum tersedia (mis. di Safari/Firefox/status dev)
+					pwaModal?.classList.remove('hidden');
+				}
+			});
+
+			function hideModal() {
+				pwaModal?.classList.add('hidden');
+			}
+
+			closePwaModal?.addEventListener('click', hideModal);
+			okPwaModal?.addEventListener('click', hideModal);
+			pwaModal?.addEventListener('click', (e) => {
+				if (e.target === pwaModal) hideModal();
+			});
+
+			window.addEventListener('appinstalled', () => {
+				deferredPrompt = null;
+				hideModal();
+				if (installBtn) {
+					installBtn.classList.add('hidden');
+					installBtn.classList.remove('inline-flex');
+				}
+			});
+		</script>
+	</body>
+</html>

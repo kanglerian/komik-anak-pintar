@@ -1,0 +1,505 @@
+---
+import type { Comic } from '../lib/comics';
+
+interface Props {
+	comic: Comic;
+}
+
+const { comic } = Astro.props;
+---
+
+<div
+	id="reader-stage"
+	class="reader-stage relative flex flex-col items-center justify-between rounded-2xl bg-slate-900 p-3 sm:p-5 shadow-xl border border-slate-800"
+	data-slug={comic.slug}
+	data-total-pages={comic.pageCount}
+	data-page-width={comic.width}
+	data-page-height={comic.height}
+>
+	<!-- Clean Minimalist Top Toolbar -->
+	<div class="reader-topbar w-full flex flex-wrap items-center justify-between gap-2 pb-2.5 px-1 z-20">
+		<div class="flex items-center gap-2">
+			<span
+				id="page-indicator"
+				class="inline-flex items-center rounded-lg bg-slate-800 border border-slate-700 px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-100"
+			>
+				Halaman 1 / {comic.pageCount}
+			</span>
+			<button
+				id="btn-restart"
+				type="button"
+				title="Ulangi dari Halaman 1"
+				class="hidden items-center gap-1 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 active:scale-95 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-200 transition cursor-pointer"
+			>
+				↺ Ulangi
+			</button>
+		</div>
+
+		<div class="flex items-center gap-2">
+			<!-- Thumbnail List Toggle -->
+			<button
+				id="btn-thumbs-toggle"
+				type="button"
+				class="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 active:scale-95 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-100 transition cursor-pointer"
+			>
+				<span>☷</span>
+				<span class="hidden sm:inline">Halaman</span>
+			</button>
+
+			<!-- Sound Toggle -->
+			<button
+				id="btn-sound"
+				type="button"
+				aria-label="Aktifkan atau matikan efek suara buku"
+				class="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 active:scale-95 px-3 py-1.5 text-xs sm:text-sm font-semibold text-slate-100 transition cursor-pointer"
+			>
+				<span id="sound-icon">🔊</span>
+				<span id="sound-label" class="hidden sm:inline">Suara</span>
+			</button>
+
+			<!-- Fullscreen Toggle -->
+			<button
+				id="btn-fullscreen"
+				type="button"
+				aria-label="Mode Layar Penuh"
+				class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition cursor-pointer"
+			>
+				<span id="fullscreen-icon">⛶</span>
+				<span id="fullscreen-label">Layar Penuh</span>
+			</button>
+		</div>
+	</div>
+
+	<!-- Subtle Progress Bar -->
+	<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
+		<div
+			id="reading-progress"
+			class="h-full bg-indigo-500 transition-all duration-300 rounded-full"
+			style={`width: ${Math.max(5, Math.round((1 / comic.pageCount) * 100))}%`}
+		>
+		</div>
+	</div>
+
+	<!-- Main 16:9 Widescreen Book & Side Navigation Area -->
+	<div class="flipbook-stage-area relative w-full flex items-center justify-center my-1">
+		<!-- Side Prev Button (Desktop/Tablet) -->
+		<button
+			id="btn-prev-side"
+			type="button"
+			aria-label="Halaman Sebelumnya"
+			class="hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-slate-800/90 hover:bg-indigo-600 border border-slate-700 disabled:opacity-25 disabled:pointer-events-none text-white font-bold text-lg shadow-lg active:scale-95 transition z-20 mr-3 shrink-0 cursor-pointer"
+		>
+			❮
+		</button>
+
+		<!-- 3D Flipbook 16:9 Container -->
+		<div
+			id="flipbook-viewport"
+			class="flipbook-wrapper w-full flex items-center justify-center overflow-hidden"
+		>
+			<div id="comic-book" class="w-full mx-auto select-none">
+				{
+					comic.pages.map((pageUrl, idx) => (
+						<div
+							class="comic-page relative bg-slate-950 flex items-center justify-center rounded-lg overflow-hidden"
+							data-density="soft"
+						>
+							<img
+								src={pageUrl}
+								alt={`${comic.title} - Halaman ${idx + 1}`}
+								loading={idx < 4 ? 'eager' : 'lazy'}
+								draggable="false"
+								class="w-full h-full object-contain pointer-events-none select-none"
+							/>
+							<span class="absolute bottom-2.5 right-3 rounded-md bg-slate-900/75 px-2.5 py-0.5 text-xs font-semibold text-slate-200 backdrop-blur-xs pointer-events-none">
+								{idx + 1} / {comic.pageCount}
+							</span>
+						</div>
+					))
+				}
+			</div>
+		</div>
+
+		<!-- Side Next Button (Desktop/Tablet) -->
+		<button
+			id="btn-next-side"
+			type="button"
+			aria-label="Halaman Berikutnya"
+			class="hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-slate-800/90 hover:bg-indigo-600 border border-slate-700 disabled:opacity-25 disabled:pointer-events-none text-white font-bold text-lg shadow-lg active:scale-95 transition z-20 ml-3 shrink-0 cursor-pointer"
+		>
+			❯
+		</button>
+	</div>
+
+	<!-- Bottom Controls & Thumbnail Drawer -->
+	<div class="reader-bottombar w-full flex flex-col items-center gap-2.5 pt-3 z-20">
+		<div class="flex items-center justify-center gap-3 w-full max-w-md">
+			<button
+				id="btn-prev-bottom"
+				type="button"
+				class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-35 disabled:pointer-events-none active:scale-95 px-4 py-2.5 text-sm font-semibold text-white transition cursor-pointer"
+			>
+				← Sebelumnya
+			</button>
+
+			<button
+				id="btn-next-bottom"
+				type="button"
+				class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-35 disabled:pointer-events-none active:scale-95 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition cursor-pointer"
+			>
+				Berikutnya →
+			</button>
+		</div>
+
+		<p class="reader-hint text-xs text-slate-400 text-center">
+			Tips: Geser gambar atau tarik ujung halaman untuk membalik lembar komik
+		</p>
+
+		<!-- Collapsible 16:9 Thumbnail Strip -->
+		<div
+			id="thumbs-drawer"
+			class="hidden w-full overflow-x-auto rounded-xl bg-slate-950/90 p-3 border border-slate-800 mt-1"
+		>
+			<div class="flex items-center gap-2.5 min-w-max">
+				{
+					comic.pages.map((pageUrl, idx) => (
+						<button
+							type="button"
+							data-jump-page={idx}
+							class="thumb-item group relative flex flex-col items-center rounded-lg overflow-hidden border-2 border-transparent hover:border-indigo-400 transition focus:outline-none cursor-pointer"
+						>
+							<img
+								src={pageUrl}
+								alt={`Halaman ${idx + 1}`}
+								loading="lazy"
+								class="w-28 aspect-video object-cover bg-slate-900"
+							/>
+							<span class="w-full bg-slate-900 text-[11px] font-semibold text-slate-200 py-1 text-center">
+								Hal {idx + 1}
+							</span>
+						</button>
+					))
+				}
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	import { PageFlip } from 'page-flip';
+
+	function initComicReader() {
+		const stage = document.getElementById('reader-stage');
+		const viewport = document.getElementById('flipbook-viewport');
+		const bookEl = document.getElementById('comic-book');
+		if (!stage || !viewport || !bookEl) return;
+
+		const slug = stage.dataset.slug || 'default';
+		const totalPages = Number(stage.dataset.totalPages || 1);
+		const pageWidth = Number(stage.dataset.pageWidth || 1280);
+		const pageHeight = Number(stage.dataset.pageHeight || 720);
+		const aspectRatio = pageWidth / pageHeight; // 16:9 (1.7778)
+
+		const bookmarkKey = `komik_bookmark_${slug}`;
+		const soundKey = 'komik_sound_enabled';
+
+		let soundEnabled = localStorage.getItem(soundKey) !== 'false';
+		let audioCtx: AudioContext | null = null;
+
+		function playPageFlipSound() {
+			if (!soundEnabled) return;
+			try {
+				const AudioContextClass =
+					window.AudioContext ||
+					(window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+				if (!audioCtx) {
+					audioCtx = new AudioContextClass();
+				}
+				if (audioCtx.state === 'suspended') {
+					audioCtx.resume();
+				}
+
+				const duration = 0.2;
+				const bufferSize = audioCtx.sampleRate * duration;
+				const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+				const data = buffer.getChannelData(0);
+
+				for (let i = 0; i < bufferSize; i++) {
+					const t = i / bufferSize;
+					const env = Math.sin(t * Math.PI) * Math.pow(1 - t, 0.7);
+					data[i] = (Math.random() * 2 - 1) * env * 0.22;
+				}
+
+				const noise = audioCtx.createBufferSource();
+				noise.buffer = buffer;
+
+				const filter = audioCtx.createBiquadFilter();
+				filter.type = 'bandpass';
+				filter.frequency.setValueAtTime(900, audioCtx.currentTime);
+				filter.frequency.exponentialRampToValueAtTime(2100, audioCtx.currentTime + duration);
+				filter.Q.value = 1.4;
+
+				const gain = audioCtx.createGain();
+				gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+				gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.04);
+				gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+				noise.connect(filter);
+				filter.connect(gain);
+				gain.connect(audioCtx.destination);
+
+				noise.start();
+			} catch {
+				// Ignore audio errors if blocked by browser autoplay policy
+			}
+		}
+
+		const savedPage = Math.min(
+			Math.max(0, Number(localStorage.getItem(bookmarkKey) || 0)),
+			totalPages - 1
+		);
+
+		const pageFlip = new PageFlip(bookEl, {
+			width: pageWidth,
+			height: pageHeight,
+			size: 'stretch',
+			minWidth: 280,
+			maxWidth: 2560,
+			minHeight: 158,
+			maxHeight: 1440,
+			maxShadowOpacity: 0.45,
+			showCover: false,
+			usePortrait: true,
+			mobileScrollSupport: false,
+			flippingTime: 600,
+			startPage: savedPage,
+			drawShadow: true,
+		});
+
+		const pages = bookEl.querySelectorAll('.comic-page');
+		pageFlip.loadFromHTML(pages as NodeListOf<HTMLElement>);
+
+		// Fix StPageFlip wrapper height & single-page 16:9 bounds so it scales cleanly in normal & Fullscreen modes
+		const render = pageFlip.getRender() as unknown as {
+			getBlockWidth: () => number;
+			getBlockHeight: () => number;
+			boundsRect: { left: number; top: number; width: number; height: number; pageWidth: number };
+			calculateBoundsRect: () => string;
+		};
+
+		function resizeBookToFit() {
+			const wrapperEl = bookEl?.querySelector('.stf__wrapper') as HTMLElement | null;
+			if (!wrapperEl || !viewport) return;
+
+			const isFullscreen = Boolean(document.fullscreenElement);
+			const availWidth = viewport.clientWidth;
+
+			let targetWidth = availWidth;
+			let targetHeight = Math.round(targetWidth / aspectRatio);
+
+			if (isFullscreen) {
+				// In fullscreen, reserve ~115px for top and bottom controls so the 16:9 comic fills the screen
+				const maxAvailHeight = Math.max(240, window.innerHeight - 120);
+				if (targetHeight > maxAvailHeight) {
+					targetHeight = maxAvailHeight;
+					targetWidth = Math.round(targetHeight * aspectRatio);
+				}
+			}
+
+			// Override StPageFlip's default 28.125% dual-spread paddingBottom with exact 16:9 height
+			wrapperEl.style.paddingBottom = '0px';
+			wrapperEl.style.width = `${targetWidth}px`;
+			wrapperEl.style.height = `${targetHeight}px`;
+			wrapperEl.style.margin = '0 auto';
+		}
+
+		if (render) {
+			render.calculateBoundsRect = function () {
+				resizeBookToFit();
+				const blockWidth = this.getBlockWidth();
+				const blockHeight = this.getBlockHeight();
+				const middleX = blockWidth / 2;
+				const middleY = blockHeight / 2;
+
+				let h = blockWidth;
+				let r = h / aspectRatio;
+				if (r > blockHeight) {
+					r = blockHeight;
+					h = r * aspectRatio;
+				}
+
+				const left = middleX - h / 2 - h;
+				this.boundsRect = {
+					left,
+					top: middleY - r / 2,
+					width: 2 * h,
+					height: r,
+					pageWidth: h,
+				};
+				return 'portrait';
+			};
+			pageFlip.update();
+		}
+
+		window.addEventListener('resize', () => {
+			resizeBookToFit();
+			pageFlip.update();
+		});
+
+		// UI Elements
+		const pageIndicator = document.getElementById('page-indicator');
+		const progressBar = document.getElementById('reading-progress');
+		const btnRestart = document.getElementById('btn-restart');
+		const btnPrevSide = document.getElementById('btn-prev-side') as HTMLButtonElement | null;
+		const btnNextSide = document.getElementById('btn-next-side') as HTMLButtonElement | null;
+		const btnPrevBottom = document.getElementById('btn-prev-bottom') as HTMLButtonElement | null;
+		const btnNextBottom = document.getElementById('btn-next-bottom') as HTMLButtonElement | null;
+		const btnSound = document.getElementById('btn-sound');
+		const soundIcon = document.getElementById('sound-icon');
+		const soundLabel = document.getElementById('sound-label');
+		const btnFullscreen = document.getElementById('btn-fullscreen');
+		const fullscreenLabel = document.getElementById('fullscreen-label');
+		const btnThumbsToggle = document.getElementById('btn-thumbs-toggle');
+		const thumbsDrawer = document.getElementById('thumbs-drawer');
+		const thumbButtons = document.querySelectorAll<HTMLButtonElement>('[data-jump-page]');
+
+		function updateSoundButtonUI() {
+			if (!soundIcon || !btnSound) return;
+			if (soundEnabled) {
+				soundIcon.textContent = '🔊';
+				if (soundLabel) soundLabel.textContent = 'Suara';
+				btnSound.classList.remove('opacity-60');
+			} else {
+				soundIcon.textContent = '🔇';
+				if (soundLabel) soundLabel.textContent = 'Bisu';
+				btnSound.classList.add('opacity-60');
+			}
+		}
+
+		function updateUI(currentIndex: number) {
+			const currentNum = currentIndex + 1;
+			if (pageIndicator) {
+				pageIndicator.textContent = `Halaman ${currentNum} / ${totalPages}`;
+			}
+
+			if (progressBar) {
+				const pct = Math.max(5, Math.round((currentNum / totalPages) * 100));
+				progressBar.style.width = `${pct}%`;
+			}
+
+			if (btnRestart) {
+				if (currentIndex > 0) {
+					btnRestart.classList.remove('hidden');
+					btnRestart.classList.add('inline-flex');
+				} else {
+					btnRestart.classList.add('hidden');
+					btnRestart.classList.remove('inline-flex');
+				}
+			}
+
+			const isFirst = currentIndex <= 0;
+			const isLast = currentIndex >= totalPages - 1;
+
+			if (btnPrevSide) btnPrevSide.disabled = isFirst;
+			if (btnPrevBottom) btnPrevBottom.disabled = isFirst;
+			if (btnNextSide) btnNextSide.disabled = isLast;
+			if (btnNextBottom) btnNextBottom.disabled = isLast;
+
+			// Highlight active thumbnail
+			thumbButtons.forEach((btn) => {
+				const idx = Number(btn.dataset.jumpPage);
+				if (idx === currentIndex) {
+					btn.classList.add('border-indigo-500', 'ring-2', 'ring-indigo-500');
+					btn.classList.remove('border-transparent');
+				} else {
+					btn.classList.remove('border-indigo-500', 'ring-2', 'ring-indigo-500');
+					btn.classList.add('border-transparent');
+				}
+			});
+
+			// Save bookmark to localStorage
+			localStorage.setItem(bookmarkKey, String(currentIndex));
+		}
+
+		updateSoundButtonUI();
+		updateUI(savedPage);
+
+		// Listen to flip events
+		pageFlip.on('flip', (e) => {
+			const pageIdx = Number(e.data);
+			playPageFlipSound();
+			updateUI(pageIdx);
+		});
+
+		// Navigation Buttons
+		btnPrevSide?.addEventListener('click', () => pageFlip.flipPrev());
+		btnPrevBottom?.addEventListener('click', () => pageFlip.flipPrev());
+		btnNextSide?.addEventListener('click', () => pageFlip.flipNext());
+		btnNextBottom?.addEventListener('click', () => pageFlip.flipNext());
+
+		btnRestart?.addEventListener('click', () => {
+			pageFlip.flip(0);
+		});
+
+		// Sound Toggle
+		btnSound?.addEventListener('click', () => {
+			soundEnabled = !soundEnabled;
+			localStorage.setItem(soundKey, String(soundEnabled));
+			updateSoundButtonUI();
+			if (soundEnabled) playPageFlipSound();
+		});
+
+		// Fullscreen Toggle
+		btnFullscreen?.addEventListener('click', async () => {
+			try {
+				if (!document.fullscreenElement) {
+					await stage.requestFullscreen();
+				} else {
+					await document.exitFullscreen();
+				}
+			} catch (err) {
+				console.warn('Fullscreen tidak didukung:', err);
+			}
+		});
+
+		document.addEventListener('fullscreenchange', () => {
+			if (fullscreenLabel) {
+				fullscreenLabel.textContent = document.fullscreenElement ? 'Keluar Penuh' : 'Layar Penuh';
+			}
+			// Recalculate dimensions immediately and after transition completes
+			resizeBookToFit();
+			pageFlip.update();
+			setTimeout(() => {
+				resizeBookToFit();
+				pageFlip.update();
+			}, 120);
+		});
+
+		// Thumbnail Drawer Toggle & Jump
+		btnThumbsToggle?.addEventListener('click', () => {
+			thumbsDrawer?.classList.toggle('hidden');
+			setTimeout(() => {
+				resizeBookToFit();
+				pageFlip.update();
+			}, 50);
+		});
+
+		thumbButtons.forEach((btn) => {
+			btn.addEventListener('click', () => {
+				const targetPage = Number(btn.dataset.jumpPage || 0);
+				pageFlip.flip(targetPage);
+			});
+		});
+
+		// Keyboard navigation
+		window.addEventListener('keydown', (e) => {
+			if (e.key === 'ArrowRight') {
+				pageFlip.flipNext();
+			} else if (e.key === 'ArrowLeft') {
+				pageFlip.flipPrev();
+			}
+		});
+	}
+
+	initComicReader();
+</script>
