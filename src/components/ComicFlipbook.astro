@@ -15,6 +15,8 @@ const { comic } = Astro.props;
 	data-total-pages={comic.pageCount}
 	data-page-width={comic.width}
 	data-page-height={comic.height}
+	data-page-audios={JSON.stringify(comic.pageAudios)}
+	data-narrations={JSON.stringify(comic.narrations)}
 >
 	<!-- Clean Minimalist Top Toolbar -->
 	<div class="reader-topbar w-full flex flex-wrap items-center justify-between gap-2 pb-2.5 px-1 z-20">
@@ -36,6 +38,17 @@ const { comic } = Astro.props;
 		</div>
 
 		<div class="flex items-center gap-2">
+			<!-- Page Audio / Narration Button (Auto-hidden when comic/page has no audio) -->
+			<button
+				id="btn-page-audio"
+				type="button"
+				aria-label="Dengarkan cerita halaman ini"
+				class="hidden items-center gap-1.5 rounded-lg bg-amber-400 hover:bg-amber-300 active:scale-95 px-3 py-1.5 text-xs sm:text-sm font-bold text-slate-950 shadow-xs transition cursor-pointer"
+			>
+				<span id="page-audio-icon">▶️</span>
+				<span id="page-audio-label">Dengarkan</span>
+			</button>
+
 			<!-- Thumbnail List Toggle -->
 			<button
 				id="btn-thumbs-toggle"
@@ -71,7 +84,7 @@ const { comic } = Astro.props;
 	</div>
 
 	<!-- Subtle Progress Bar -->
-	<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
+	<div class="reader-progress-track w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mb-3">
 		<div
 			id="reading-progress"
 			class="h-full bg-indigo-500 transition-all duration-300 rounded-full"
@@ -87,7 +100,7 @@ const { comic } = Astro.props;
 			id="btn-prev-side"
 			type="button"
 			aria-label="Halaman Sebelumnya"
-			class="hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-slate-800/90 hover:bg-indigo-600 border border-slate-700 disabled:opacity-25 disabled:pointer-events-none text-white font-bold text-lg shadow-lg active:scale-95 transition z-20 mr-3 shrink-0 cursor-pointer"
+			class="reader-side-btn reader-side-prev hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-slate-800/90 hover:bg-indigo-600 border border-slate-700 disabled:opacity-25 disabled:pointer-events-none text-white font-bold text-lg shadow-lg active:scale-95 transition z-20 mr-3 shrink-0 cursor-pointer"
 		>
 			❮
 		</button>
@@ -125,7 +138,7 @@ const { comic } = Astro.props;
 			id="btn-next-side"
 			type="button"
 			aria-label="Halaman Berikutnya"
-			class="hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-slate-800/90 hover:bg-indigo-600 border border-slate-700 disabled:opacity-25 disabled:pointer-events-none text-white font-bold text-lg shadow-lg active:scale-95 transition z-20 ml-3 shrink-0 cursor-pointer"
+			class="reader-side-btn reader-side-next hidden md:flex items-center justify-center w-11 h-11 rounded-full bg-slate-800/90 hover:bg-indigo-600 border border-slate-700 disabled:opacity-25 disabled:pointer-events-none text-white font-bold text-lg shadow-lg active:scale-95 transition z-20 ml-3 shrink-0 cursor-pointer"
 		>
 			❯
 		</button>
@@ -133,11 +146,11 @@ const { comic } = Astro.props;
 
 	<!-- Bottom Controls & Thumbnail Drawer -->
 	<div class="reader-bottombar w-full flex flex-col items-center gap-2.5 pt-3 z-20">
-		<div class="flex items-center justify-center gap-3 w-full max-w-md">
+		<div class="reader-bottom-nav flex items-center justify-center gap-2.5 sm:gap-3 w-full max-w-md">
 			<button
 				id="btn-prev-bottom"
 				type="button"
-				class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-35 disabled:pointer-events-none active:scale-95 px-4 py-2.5 text-sm font-semibold text-white transition cursor-pointer"
+				class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 disabled:opacity-35 disabled:pointer-events-none active:scale-95 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white whitespace-nowrap transition cursor-pointer"
 			>
 				← Sebelumnya
 			</button>
@@ -145,7 +158,7 @@ const { comic } = Astro.props;
 			<button
 				id="btn-next-bottom"
 				type="button"
-				class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-35 disabled:pointer-events-none active:scale-95 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition cursor-pointer"
+				class="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-35 disabled:pointer-events-none active:scale-95 px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-semibold text-white whitespace-nowrap shadow-sm transition cursor-pointer"
 			>
 				Berikutnya →
 			</button>
@@ -200,11 +213,24 @@ const { comic } = Astro.props;
 		const pageHeight = Number(stage.dataset.pageHeight || 720);
 		const aspectRatio = pageWidth / pageHeight; // 16:9 (1.7778)
 
+		let pageAudios: Array<string | null> = [];
+		let narrations: Array<string | null> = [];
+		try {
+			pageAudios = JSON.parse(stage.dataset.pageAudios || '[]');
+			narrations = JSON.parse(stage.dataset.narrations || '[]');
+		} catch {
+			pageAudios = [];
+			narrations = [];
+		}
+
 		const bookmarkKey = `komik_bookmark_${slug}`;
 		const soundKey = 'komik_sound_enabled';
 
 		let soundEnabled = localStorage.getItem(soundKey) !== 'false';
 		let audioCtx: AudioContext | null = null;
+		let currentAudio: HTMLAudioElement | null = null;
+		let isPlayingPageAudio = false;
+		let activePageIndex = 0;
 
 		function playPageFlipSound() {
 			if (!soundEnabled) return;
@@ -287,23 +313,38 @@ const { comic } = Astro.props;
 			calculateBoundsRect: () => string;
 		};
 
+		function isFullscreenActive() {
+			const doc = document as Document & { webkitFullscreenElement?: Element | null };
+			return Boolean(
+				doc.fullscreenElement ||
+					doc.webkitFullscreenElement ||
+					stage?.classList.contains('is-pseudo-fullscreen')
+			);
+		}
+
 		function resizeBookToFit() {
 			const wrapperEl = bookEl?.querySelector('.stf__wrapper') as HTMLElement | null;
 			if (!wrapperEl || !viewport) return;
 
-			const isFullscreen = Boolean(document.fullscreenElement);
-			const availWidth = viewport.clientWidth;
+			const isFullscreen = isFullscreenActive();
 
-			let targetWidth = availWidth;
-			let targetHeight = Math.round(targetWidth / aspectRatio);
+			let targetWidth: number;
+			let targetHeight: number;
 
 			if (isFullscreen) {
-				// In fullscreen, reserve ~115px for top and bottom controls so the 16:9 comic fills the screen
-				const maxAvailHeight = Math.max(240, window.innerHeight - 120);
-				if (targetHeight > maxAvailHeight) {
-					targetHeight = maxAvailHeight;
+				// In fullscreen, controls float and auto-hide, so the 16:9 comic fills the screen
+				const maxW = Math.max(280, window.innerWidth - 20);
+				const maxH = Math.max(200, window.innerHeight - 16);
+				targetWidth = maxW;
+				targetHeight = Math.round(targetWidth / aspectRatio);
+				if (targetHeight > maxH) {
+					targetHeight = maxH;
 					targetWidth = Math.round(targetHeight * aspectRatio);
 				}
+			} else {
+				const availWidth = viewport.clientWidth;
+				targetWidth = availWidth;
+				targetHeight = Math.round(targetWidth / aspectRatio);
 			}
 
 			// Override StPageFlip's default 28.125% dual-spread paddingBottom with exact 16:9 height
@@ -347,6 +388,8 @@ const { comic } = Astro.props;
 		});
 
 		// UI Elements
+		const topbar = stage.querySelector('.reader-topbar') as HTMLElement | null;
+		const bottombar = stage.querySelector('.reader-bottombar') as HTMLElement | null;
 		const pageIndicator = document.getElementById('page-indicator');
 		const progressBar = document.getElementById('reading-progress');
 		const btnRestart = document.getElementById('btn-restart');
@@ -357,11 +400,142 @@ const { comic } = Astro.props;
 		const btnSound = document.getElementById('btn-sound');
 		const soundIcon = document.getElementById('sound-icon');
 		const soundLabel = document.getElementById('sound-label');
+		const btnPageAudio = document.getElementById('btn-page-audio');
+		const pageAudioIcon = document.getElementById('page-audio-icon');
+		const pageAudioLabel = document.getElementById('page-audio-label');
 		const btnFullscreen = document.getElementById('btn-fullscreen');
+		const fullscreenIcon = document.getElementById('fullscreen-icon');
 		const fullscreenLabel = document.getElementById('fullscreen-label');
 		const btnThumbsToggle = document.getElementById('btn-thumbs-toggle');
 		const thumbsDrawer = document.getElementById('thumbs-drawer');
 		const thumbButtons = document.querySelectorAll<HTMLButtonElement>('[data-jump-page]');
+
+		function hasPageAudio(pageIdx: number): boolean {
+			return Boolean(pageAudios[pageIdx] || narrations[pageIdx]);
+		}
+
+		function updatePageAudioButtonUI(playing: boolean) {
+			isPlayingPageAudio = playing;
+			if (!btnPageAudio || !pageAudioIcon || !pageAudioLabel) return;
+			if (playing) {
+				pageAudioIcon.textContent = '⏹️';
+				pageAudioLabel.textContent = 'Hentikan';
+				btnPageAudio.classList.remove('bg-amber-400', 'hover:bg-amber-300');
+				btnPageAudio.classList.add('bg-rose-500', 'hover:bg-rose-400', 'text-white');
+			} else {
+				pageAudioIcon.textContent = '▶️';
+				pageAudioLabel.textContent = 'Dengarkan';
+				btnPageAudio.classList.add('bg-amber-400', 'hover:bg-amber-300');
+				btnPageAudio.classList.remove('bg-rose-500', 'hover:bg-rose-400', 'text-white');
+			}
+		}
+
+		function stopPageAudio() {
+			if (currentAudio) {
+				currentAudio.pause();
+				currentAudio.currentTime = 0;
+				currentAudio = null;
+			}
+			if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+				window.speechSynthesis.cancel();
+			}
+			updatePageAudioButtonUI(false);
+		}
+
+		function playPageAudio(pageIdx: number) {
+			stopPageAudio();
+			if (!hasPageAudio(pageIdx)) return;
+
+			const audioUrl = pageAudios[pageIdx];
+			const narrationText = narrations[pageIdx];
+
+			if (audioUrl) {
+				const audio = new Audio(audioUrl);
+				currentAudio = audio;
+				updatePageAudioButtonUI(true);
+				audio.addEventListener('ended', () => {
+					if (currentAudio === audio) {
+						currentAudio = null;
+						updatePageAudioButtonUI(false);
+					}
+				});
+				audio.addEventListener('error', () => {
+					if (currentAudio === audio) {
+						currentAudio = null;
+						updatePageAudioButtonUI(false);
+					}
+				});
+				audio.play().catch(() => {
+					if (currentAudio === audio) {
+						currentAudio = null;
+						updatePageAudioButtonUI(false);
+					}
+				});
+			} else if (narrationText && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+				const utterance = new SpeechSynthesisUtterance(narrationText);
+				utterance.lang = 'id-ID';
+				utterance.rate = 0.95;
+				utterance.pitch = 1.05;
+				utterance.onstart = () => updatePageAudioButtonUI(true);
+				utterance.onend = () => updatePageAudioButtonUI(false);
+				utterance.onerror = () => updatePageAudioButtonUI(false);
+				window.speechSynthesis.speak(utterance);
+			}
+		}
+
+		// Auto-hide controls in Fullscreen mode
+		let controlsHideTimer: ReturnType<typeof setTimeout> | null = null;
+		let isHoveringControls = false;
+
+		function clearControlsTimer() {
+			if (controlsHideTimer) {
+				clearTimeout(controlsHideTimer);
+				controlsHideTimer = null;
+			}
+		}
+
+		function showFullscreenControls() {
+			stage?.classList.remove('fs-controls-hidden');
+			clearControlsTimer();
+
+			if (!isFullscreenActive()) return;
+
+			const isDrawerOpen = thumbsDrawer && !thumbsDrawer.classList.contains('hidden');
+			if (isHoveringControls || isDrawerOpen) return;
+
+			controlsHideTimer = setTimeout(() => {
+				const drawerStillOpen = thumbsDrawer && !thumbsDrawer.classList.contains('hidden');
+				if (isFullscreenActive() && !isHoveringControls && !drawerStillOpen) {
+					stage?.classList.add('fs-controls-hidden');
+				}
+			}, 2400);
+		}
+
+		[topbar, bottombar, btnPrevSide, btnNextSide].forEach((el) => {
+			if (!el) return;
+			el.addEventListener(' pointerenter', () => {
+				isHoveringControls = true;
+				showFullscreenControls();
+			});
+			el.addEventListener('mouseenter', () => {
+				isHoveringControls = true;
+				showFullscreenControls();
+			});
+			el.addEventListener('mouseleave', () => {
+				isHoveringControls = false;
+				showFullscreenControls();
+			});
+		});
+
+		stage.addEventListener('mousemove', () => {
+			if (isFullscreenActive()) showFullscreenControls();
+		});
+		stage.addEventListener('touchstart', () => {
+			if (isFullscreenActive()) showFullscreenControls();
+		}, { passive: true });
+		stage.addEventListener('click', () => {
+			if (isFullscreenActive()) showFullscreenControls();
+		});
 
 		function updateSoundButtonUI() {
 			if (!soundIcon || !btnSound) return;
@@ -376,7 +550,8 @@ const { comic } = Astro.props;
 			}
 		}
 
-		function updateUI(currentIndex: number) {
+		function updateUI(currentIndex: number, autoPlayAudio = false) {
+			activePageIndex = currentIndex;
 			const currentNum = currentIndex + 1;
 			if (pageIndicator) {
 				pageIndicator.textContent = `Halaman ${currentNum} / ${totalPages}`;
@@ -394,6 +569,21 @@ const { comic } = Astro.props;
 				} else {
 					btnRestart.classList.add('hidden');
 					btnRestart.classList.remove('inline-flex');
+				}
+			}
+
+			// Tampilkan atau sembunyikan tombol Dengarkan secara fleksibel sesuai ketersediaan audio halaman
+			stopPageAudio();
+			if (btnPageAudio) {
+				if (hasPageAudio(currentIndex)) {
+					btnPageAudio.classList.remove('hidden');
+					btnPageAudio.classList.add('inline-flex');
+					if (autoPlayAudio && soundEnabled) {
+						playPageAudio(currentIndex);
+					}
+				} else {
+					btnPageAudio.classList.add('hidden');
+					btnPageAudio.classList.remove('inline-flex');
 				}
 			}
 
@@ -422,13 +612,13 @@ const { comic } = Astro.props;
 		}
 
 		updateSoundButtonUI();
-		updateUI(savedPage);
+		updateUI(savedPage, false);
 
 		// Listen to flip events
 		pageFlip.on('flip', (e) => {
 			const pageIdx = Number(e.data);
 			playPageFlipSound();
-			updateUI(pageIdx);
+			updateUI(pageIdx, true);
 		});
 
 		// Navigation Buttons
@@ -441,31 +631,49 @@ const { comic } = Astro.props;
 			pageFlip.flip(0);
 		});
 
+		// Page Audio Play/Stop Button
+		btnPageAudio?.addEventListener('click', () => {
+			if (isPlayingPageAudio) {
+				stopPageAudio();
+			} else {
+				playPageAudio(activePageIndex);
+			}
+		});
+
 		// Sound Toggle
 		btnSound?.addEventListener('click', () => {
 			soundEnabled = !soundEnabled;
 			localStorage.setItem(soundKey, String(soundEnabled));
 			updateSoundButtonUI();
-			if (soundEnabled) playPageFlipSound();
-		});
-
-		// Fullscreen Toggle
-		btnFullscreen?.addEventListener('click', async () => {
-			try {
-				if (!document.fullscreenElement) {
-					await stage.requestFullscreen();
-				} else {
-					await document.exitFullscreen();
-				}
-			} catch (err) {
-				console.warn('Fullscreen tidak didukung:', err);
+			if (soundEnabled) {
+				playPageFlipSound();
+			} else {
+				stopPageAudio();
 			}
 		});
 
-		document.addEventListener('fullscreenchange', () => {
+		window.addEventListener('pagehide', stopPageAudio);
+		window.addEventListener('beforeunload', stopPageAudio);
+
+		function syncFullscreenState() {
+			const active = isFullscreenActive();
+			stage?.classList.toggle('is-fullscreen', active);
+			document.body.classList.toggle('overflow-hidden', active);
+
 			if (fullscreenLabel) {
-				fullscreenLabel.textContent = document.fullscreenElement ? 'Keluar Penuh' : 'Layar Penuh';
+				fullscreenLabel.textContent = active ? 'Keluar Penuh' : 'Layar Penuh';
 			}
+			if (fullscreenIcon) {
+				fullscreenIcon.textContent = active ? '✕' : '⛶';
+			}
+
+			if (active) {
+				showFullscreenControls();
+			} else {
+				clearControlsTimer();
+				stage?.classList.remove('fs-controls-hidden');
+			}
+
 			// Recalculate dimensions immediately and after transition completes
 			resizeBookToFit();
 			pageFlip.update();
@@ -473,11 +681,64 @@ const { comic } = Astro.props;
 				resizeBookToFit();
 				pageFlip.update();
 			}, 120);
+		}
+
+		async function toggleFullscreen() {
+			const doc = document as Document & {
+				webkitFullscreenElement?: Element | null;
+				webkitExitFullscreen?: () => Promise<void>;
+			};
+			const el = stage as HTMLElement & {
+				webkitRequestFullscreen?: () => Promise<void>;
+			};
+			if (!el) return;
+
+			if (isFullscreenActive()) {
+				if (el.classList.contains('is-pseudo-fullscreen')) {
+					el.classList.remove('is-pseudo-fullscreen');
+					syncFullscreenState();
+					return;
+				}
+				try {
+					if (doc.exitFullscreen) {
+						await doc.exitFullscreen();
+					} else if (doc.webkitExitFullscreen) {
+						await doc.webkitExitFullscreen();
+					}
+				} catch {
+					el.classList.remove('is-pseudo-fullscreen');
+					syncFullscreenState();
+				}
+			} else {
+				try {
+					if (el.requestFullscreen) {
+						await el.requestFullscreen();
+					} else if (el.webkitRequestFullscreen) {
+						await el.webkitRequestFullscreen();
+					} else {
+						el.classList.add('is-pseudo-fullscreen');
+						syncFullscreenState();
+					}
+				} catch {
+					// Fallback to CSS fullscreen (e.g., iOS Safari)
+					el.classList.add('is-pseudo-fullscreen');
+					syncFullscreenState();
+				}
+			}
+		}
+
+		// Fullscreen Toggle
+		btnFullscreen?.addEventListener('click', () => {
+			toggleFullscreen();
 		});
+
+		document.addEventListener('fullscreenchange', syncFullscreenState);
+		document.addEventListener('webkitfullscreenchange', syncFullscreenState);
 
 		// Thumbnail Drawer Toggle & Jump
 		btnThumbsToggle?.addEventListener('click', () => {
 			thumbsDrawer?.classList.toggle('hidden');
+			showFullscreenControls();
 			setTimeout(() => {
 				resizeBookToFit();
 				pageFlip.update();
@@ -488,15 +749,27 @@ const { comic } = Astro.props;
 			btn.addEventListener('click', () => {
 				const targetPage = Number(btn.dataset.jumpPage || 0);
 				pageFlip.flip(targetPage);
+				if (isFullscreenActive()) {
+					thumbsDrawer?.classList.add('hidden');
+					showFullscreenControls();
+				}
 			});
 		});
 
-		// Keyboard navigation
+		// Keyboard navigation & shortcuts
 		window.addEventListener('keydown', (e) => {
 			if (e.key === 'ArrowRight') {
 				pageFlip.flipNext();
+				if (isFullscreenActive()) showFullscreenControls();
 			} else if (e.key === 'ArrowLeft') {
 				pageFlip.flipPrev();
+				if (isFullscreenActive()) showFullscreenControls();
+			} else if (e.key === 'f' || e.key === 'F') {
+				e.preventDefault();
+				toggleFullscreen();
+			} else if (e.key === 'Escape' && stage.classList.contains('is-pseudo-fullscreen')) {
+				stage.classList.remove('is-pseudo-fullscreen');
+				syncFullscreenState();
 			}
 		});
 	}

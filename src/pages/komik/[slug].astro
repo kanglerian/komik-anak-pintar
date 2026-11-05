@@ -19,7 +19,7 @@ const { comic } = Astro.props;
 const allComics = getAllComics().filter((c) => c.slug !== comic.slug);
 ---
 
-<Layout title={`${comic.title} — Komik Anak Pintar`} description={comic.description}>
+<Layout title={`${comic.title} — APin (Komik Anak Pintar)`} description={comic.description}>
 	<!-- Compact & Clear Header -->
 	<div class="mb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 		<div>
@@ -36,6 +36,11 @@ const allComics = getAllComics().filter((c) => c.slug !== comic.slug);
 		</div>
 
 		<div class="flex items-center gap-2 self-start sm:self-center shrink-0">
+			{comic.hasAudio && (
+				<span class="rounded-lg bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 text-xs font-bold">
+					🎧 Ada Suara
+				</span>
+			)}
 			<span class="rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 px-3 py-1 text-xs font-semibold">
 				{comic.badge}
 			</span>

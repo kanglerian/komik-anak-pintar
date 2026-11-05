@@ -36,34 +36,162 @@
 
 /* Fullscreen reader container styling */
 .reader-stage:fullscreen,
-.reader-stage:-webkit-full-screen {
-	background-color: #090d16;
+.reader-stage:-webkit-full-screen,
+.reader-stage.is-fullscreen {
+	background-color: #060911;
+	position: fixed;
+	inset: 0;
 	width: 100vw;
 	height: 100vh;
+	height: 100dvh;
 	max-width: none;
 	border-radius: 0;
 	border: none;
 	display: flex;
 	flex-direction: column;
-	justify-content: space-between;
-	padding: 0.75rem 1.25rem;
+	justify-content: center;
+	align-items: center;
+	padding: 0;
 	overflow: hidden;
+	z-index: 50;
 }
 
 .reader-stage:fullscreen .flipbook-stage-area,
-.reader-stage:-webkit-full-screen .flipbook-stage-area {
-	flex: 1;
-	min-height: 0;
+.reader-stage:-webkit-full-screen .flipbook-stage-area,
+.reader-stage.is-fullscreen .flipbook-stage-area {
 	width: 100%;
+	height: 100%;
+	margin: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .reader-stage:fullscreen .flipbook-wrapper,
-.reader-stage:-webkit-full-screen .flipbook-wrapper {
+.reader-stage:-webkit-full-screen .flipbook-wrapper,
+.reader-stage.is-fullscreen .flipbook-wrapper {
 	max-width: 100% !important;
 	height: 100%;
 }
 
+/* Floating Top Bar in Fullscreen */
+.reader-stage:fullscreen .reader-topbar,
+.reader-stage:-webkit-full-screen .reader-topbar,
+.reader-stage.is-fullscreen .reader-topbar {
+	position: absolute;
+	top: 0.75rem;
+	left: 1rem;
+	right: 1rem;
+	width: auto;
+	padding: 0.5rem 0.75rem;
+	background: rgba(15, 23, 42, 0.85);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid rgba(51, 65, 85, 0.85);
+	border-radius: 0.875rem;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+	z-index: 30;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+/* Floating Bottom Bar in Fullscreen (Never clipped / cut off) */
+.reader-stage:fullscreen .reader-bottombar,
+.reader-stage:-webkit-full-screen .reader-bottombar,
+.reader-stage.is-fullscreen .reader-bottombar {
+	position: absolute;
+	bottom: 0.875rem;
+	left: 50%;
+	transform: translateX(-50%);
+	width: max-content;
+	max-width: calc(100vw - 1.5rem);
+	padding: 0.5rem 0.625rem;
+	background: rgba(15, 23, 42, 0.88);
+	backdrop-filter: blur(12px);
+	-webkit-backdrop-filter: blur(12px);
+	border: 1px solid rgba(51, 65, 85, 0.85);
+	border-radius: 1rem;
+	box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+	z-index: 30;
+	transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.reader-stage:fullscreen .reader-bottom-nav,
+.reader-stage:-webkit-full-screen .reader-bottom-nav,
+.reader-stage.is-fullscreen .reader-bottom-nav {
+	width: auto;
+	min-width: min(320px, calc(100vw - 2.5rem));
+}
+
+.reader-stage:fullscreen #thumbs-drawer,
+.reader-stage:-webkit-full-screen #thumbs-drawer,
+.reader-stage.is-fullscreen #thumbs-drawer {
+	order: -1;
+	max-width: calc(100vw - 2.5rem);
+	margin-top: 0;
+	margin-bottom: 0.25rem;
+}
+
+/* Floating Side Prev/Next Buttons in Fullscreen */
+.reader-stage:fullscreen .reader-side-btn,
+.reader-stage:-webkit-full-screen .reader-side-btn,
+.reader-stage.is-fullscreen .reader-side-btn {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	margin: 0;
+	z-index: 30;
+	background: rgba(15, 23, 42, 0.82);
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	transition: opacity 0.25s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.reader-stage:fullscreen .reader-side-prev,
+.reader-stage:-webkit-full-screen .reader-side-prev,
+.reader-stage.is-fullscreen .reader-side-prev {
+	left: 1rem;
+}
+
+.reader-stage:fullscreen .reader-side-next,
+.reader-stage:-webkit-full-screen .reader-side-next,
+.reader-stage.is-fullscreen .reader-side-next {
+	right: 1rem;
+}
+
+/* Sleek Bottom Edge Progress Bar in Fullscreen */
+.reader-stage:fullscreen .reader-progress-track,
+.reader-stage:-webkit-full-screen .reader-progress-track,
+.reader-stage.is-fullscreen .reader-progress-track {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	margin: 0;
+	border-radius: 0;
+	z-index: 35;
+}
+
 .reader-stage:fullscreen .reader-hint,
-.reader-stage:-webkit-full-screen .reader-hint {
+.reader-stage:-webkit-full-screen .reader-hint,
+.reader-stage.is-fullscreen .reader-hint {
 	display: none;
+}
+
+/* Auto-hide floating controls when idle in Fullscreen */
+.reader-stage.fs-controls-hidden .reader-topbar {
+	opacity: 0;
+	transform: translateY(-0.5rem);
+	pointer-events: none;
+}
+
+.reader-stage.fs-controls-hidden .reader-bottombar {
+	opacity: 0;
+	transform: translate(-50%, 0.5rem);
+	pointer-events: none;
+}
+
+.reader-stage.fs-controls-hidden .reader-side-btn {
+	opacity: 0;
+	pointer-events: none;
 }

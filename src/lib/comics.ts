@@ -12,6 +12,7 @@ export interface ComicMeta {
 	color?: 'amber' | 'sky' | 'emerald' | 'rose' | 'violet';
 	width?: number;
 	height?: number;
+	narrations?: Array<string | null>;
 }
 
 export interface Comic {
@@ -23,6 +24,9 @@ export interface Comic {
 	color: 'amber' | 'sky' | 'emerald' | 'rose' | 'violet';
 	coverUrl: string;
 	pages: string[];
+	pageAudios: Array<string | null>;
+	narrations: Array<string | null>;
+	hasAudio: boolean;
 	pageCount: number;
 	width: number;
 	height: number;
@@ -78,6 +82,29 @@ export function getAllComics(): Comic[] {
 
 		const pages = imageFiles.map((file) => `/comics/${folderName}/${file}`);
 
+		// Deteksi file audio per halaman dengan nama dasar yang sama (mis. 1.webp -> 1.mp3 / 1.ogg / 1.wav / 1.m4a / 1.webm)
+		const audioFilesMap = new Map<string, string>();
+		files
+			.filter((f) => /\.(mp3|ogg|wav|m4a|webm)$/i.test(f))
+			.forEach((audioFile) => {
+				const baseName = path.parse(audioFile).name.toLowerCase();
+				if (!audioFilesMap.has(baseName)) {
+					audioFilesMap.set(baseName, `/comics/${folderName}/${audioFile}`);
+				}
+			});
+
+		const pageAudios = imageFiles.map((imgFile) => {
+			const baseName = path.parse(imgFile).name.toLowerCase();
+			return audioFilesMap.get(baseName) || null;
+		});
+
+		const narrations = imageFiles.map((_, idx) => {
+			const rawText = Array.isArray(meta.narrations) ? meta.narrations[idx] : null;
+			return typeof rawText === 'string' && rawText.trim().length > 0 ? rawText.trim() : null;
+		});
+
+		const hasAudio = pageAudios.some(Boolean) || narrations.some(Boolean);
+
 		comics.push({
 			slug: folderName,
 			title: meta.title || formatSlugToTitle(folderName),
@@ -89,6 +116,9 @@ export function getAllComics(): Comic[] {
 			color: meta.color || DEFAULT_COLORS[index % DEFAULT_COLORS.length],
 			coverUrl: pages[0],
 			pages,
+			pageAudios,
+			narrations,
+			hasAudio,
 			pageCount: pages.length,
 			width: meta.width || 1280,
 			height: meta.height || 720,

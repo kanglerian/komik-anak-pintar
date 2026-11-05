@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Komik Anak Pintar",
-  "short_name": "Komik Pintar",
+  "name": "APin — Komik Anak Pintar",
+  "short_name": "APin",
   "description": "Perpustakaan komik digital interaktif untuk anak-anak. Geser dan balik halamannya seperti membaca buku sungguhan!",
   "start_url": "/",
   "scope": "/",

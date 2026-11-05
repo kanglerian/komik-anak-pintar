@@ -7,8 +7,8 @@ interface Props {
 }
 
 const {
-	title = 'Komik Anak Pintar — Baca Komik Interaktif',
-	description = 'Perpustakaan komik digital interaktif untuk anak-anak. Geser dan balik halamannya seperti membaca buku sungguhan!',
+	title = 'APin (Komik Anak Pintar) — Baca Komik Interaktif',
+	description = 'APin (Komik Anak Pintar) — Perpustakaan komik digital interaktif untuk anak-anak. Geser dan balik halamannya seperti membaca buku sungguhan!',
 } = Astro.props;
 ---
 
@@ -24,7 +24,7 @@ const {
 		<meta name="theme-color" content="#4f46e5" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-		<meta name="apple-mobile-web-app-title" content="Komik Pintar" />
+		<meta name="apple-mobile-web-app-title" content="APin" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title}</title>
@@ -36,20 +36,50 @@ const {
 			rel="stylesheet"
 		/>
 	</head>
-	<body class="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased">
+	<body class="relative min-h-screen flex flex-col bg-gradient-to-br from-amber-50/80 via-sky-50/60 to-rose-50/60 text-slate-800 antialiased overflow-x-hidden">
+		<!-- Simple Playful Background Ornaments (Non-intrusive) -->
+		<div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+			<!-- Soft Pastel Blobs -->
+			<div class="absolute -top-20 -left-20 w-72 h-72 rounded-full bg-amber-200/35 blur-3xl"></div>
+			<div class="absolute top-1/3 -right-24 w-80 h-80 rounded-full bg-sky-200/40 blur-3xl"></div>
+			<div class="absolute -bottom-24 left-1/4 w-72 h-72 rounded-full bg-rose-200/30 blur-3xl"></div>
+
+			<!-- Simple Kid-friendly SVG Ornaments (Stars & Dots) -->
+			<svg class="hidden sm:block absolute top-24 left-[6%] w-7 h-7 text-amber-400/70 rotate-12" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M12 2l2.6 6.6L21 9.5l-5 4.4 1.5 6.6L12 17l-5.5 3.5L8 13.9 3 9.5l6.4-.9L12 2z" />
+			</svg>
+			<svg class="hidden sm:block absolute top-36 right-[7%] w-6 h-6 text-rose-400/60 -rotate-12" viewBox="0 0 24 24" fill="currentColor">
+				<circle cx="12" cy="12" r="8" />
+			</svg>
+			<svg class="hidden md:block absolute bottom-28 left-[5%] w-8 h-8 text-sky-400/60" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M12 2C13.5 7.5 16.5 10.5 22 12C16.5 13.5 13.5 16.5 12 22C10.5 16.5 7.5 13.5 2 12C7.5 10.5 10.5 7.5 12 2Z" />
+			</svg>
+			<svg class="hidden md:block absolute bottom-36 right-[6%] w-7 h-7 text-emerald-400/60 rotate-45" viewBox="0 0 24 24" fill="currentColor">
+				<rect x="4" y="4" width="16" height="16" rx="4" />
+			</svg>
+		</div>
+
+		<!-- Colorful Kids Top Strip -->
+		<div class="h-1.5 w-full bg-gradient-to-r from-amber-400 via-rose-400 via-sky-400 to-emerald-400"></div>
+
 		<!-- Clean Header Navbar -->
-		<header class="sticky top-0 z-30 backdrop-blur-md bg-white/90 border-b border-slate-200">
+		<header class="sticky top-0 z-30 backdrop-blur-md bg-white/85 border-b border-amber-200/60">
 			<div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 				<a
 					href="/"
 					class="inline-flex items-center gap-2.5 text-lg sm:text-xl font-bold tracking-tight text-slate-900 hover:text-indigo-600 transition"
 				>
 					<span
-						class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-indigo-600 text-white shadow-xs text-lg"
+						class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-xs text-lg"
 					>
 						📚
 					</span>
-					<span>Komik Anak Pintar</span>
+					<div class="flex items-center gap-2">
+						<span>Komik Anak Pintar</span>
+						<span class="rounded-lg bg-amber-300/90 border border-amber-400/80 px-2 py-0.5 text-xs sm:text-sm font-extrabold text-slate-900 shadow-2xs">
+							APin
+						</span>
+					</div>
 				</a>
 
 				<nav class="flex items-center gap-2">
@@ -57,15 +87,14 @@ const {
 					<button
 						id="btn-install-pwa"
 						type="button"
-						class="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-95 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition cursor-pointer"
+						class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 active:scale-95 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition cursor-pointer"
 					>
-						<span>📲</span>
-						<span>Install Aplikasi</span>
+						<span>Install</span>
 					</button>
 
 					<a
 						href="/"
-						class="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-slate-700 transition"
+						class="inline-flex items-center gap-1.5 rounded-xl bg-amber-100/80 hover:bg-amber-200/80 border border-amber-200 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-amber-900 transition"
 					>
 						Daftar Komik
 					</a>
@@ -91,7 +120,7 @@ const {
 						<img src="/icons/icon-192.png" alt="Ikon Aplikasi" class="w-12 h-12 rounded-xl shadow-xs" />
 						<div>
 							<h3 id="pwa-modal-title" class="text-lg font-bold text-slate-900">
-								Install Komik Anak Pintar
+								Install APin (Komik Anak Pintar)
 							</h3>
 							<p class="text-xs text-slate-500">Pasang di layar utama HP atau komputer Anda</p>
 						</div>
@@ -141,7 +170,7 @@ const {
 
 		<footer class="mt-12 border-t border-slate-200 bg-white py-6 text-center text-xs sm:text-sm text-slate-500">
 			<div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-				<p class="font-semibold text-slate-700">Komik Anak Pintar</p>
+				<p>&copy; 2026 Komik Anak Pintar (APin) by <a href="https://kodelabo.com" target="_blank">kodelabo.com</a>. All Rights Reserved.</p>
 				<p>Geser atau tarik ujung halaman untuk membaca cerita</p>
 			</div>
 		</footer>

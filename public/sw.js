@@ -39,8 +39,8 @@ self.addEventListener('fetch', (event) => {
 	const url = new URL(request.url);
 	if (url.origin !== self.location.origin) return;
 
-	// Cache-First untuk gambar komik (.webp, .png, .svg) agar cepat dan hemat kuota saat dibaca ulang / offline
-	if (/\.(webp|png|jpe?g|avif|svg|ico)$/i.test(url.pathname)) {
+	// Cache-First untuk gambar & audio komik (.webp, .png, .svg, .mp3, dll.) agar cepat dan hemat kuota saat dibaca ulang / offline
+	if (/\.(webp|png|jpe?g|avif|svg|ico|mp3|ogg|wav|m4a|webm)$/i.test(url.pathname)) {
 		event.respondWith(
 			caches.match(request).then((cached) => {
 				if (cached) return cached;
